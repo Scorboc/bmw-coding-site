@@ -7,7 +7,7 @@ const seriesList: Series[] = [
 ];
 
 interface SeriesSelectorProps {
-  showLights: boolean;
+  showLights?: boolean;
   onSelectSeries: (series: Series) => void;
 }
 

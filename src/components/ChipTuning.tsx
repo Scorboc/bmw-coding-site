@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { City } from '@/components/CitySelector';
 import MusicPlayer from './chiptuning/MusicPlayer';
@@ -27,9 +27,10 @@ export default function ChipTuning({ selectedCity, isOpen, onClose, audioRef }: 
         audioRef.current.currentTime = 0;
       }
     }
-  }, [isOpen]);
+  }, [isOpen, audioRef]);
 
   useEffect(() => {
+    const cleanupAudio = audioRef.current;
     // Останавливаем музыку при закрытии/перезагрузке страницы
     const handleBeforeUnload = () => {
       if (audioRef.current) {
@@ -58,12 +59,10 @@ export default function ChipTuning({ selectedCity, isOpen, onClose, audioRef }: 
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handlePageHide);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
+      cleanupAudio?.pause();
+      if (cleanupAudio) cleanupAudio.currentTime = 0;
     };
-  }, []);
+  }, [audioRef]);
 
   const handleReset = () => {
     setSelectedSeries(null);

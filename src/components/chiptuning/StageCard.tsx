@@ -1,4 +1,4 @@
-import React from 'react';
+
 import Icon from '@/components/ui/icon';
 
 interface StageCardProps {
@@ -6,8 +6,8 @@ interface StageCardProps {
   stageName: string;
   isSelected: boolean;
   price: number;
-  power: string;
-  torque: string;
+  power: string | number;
+  torque: string | number;
   onClick: () => void;
 }
 
@@ -15,7 +15,6 @@ export default function StageCard({
   stageId, 
   stageName, 
   isSelected, 
-  price, 
   power, 
   torque, 
   onClick 

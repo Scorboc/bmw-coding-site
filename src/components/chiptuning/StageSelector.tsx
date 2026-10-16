@@ -1,7 +1,8 @@
+import { apiFetch } from '@/lib/api';
 import React from 'react';
 import Icon from '@/components/ui/icon';
 import { City } from '@/components/CitySelector';
-import { getTelegramLink, getCityName, getCityConfig } from '@/utils/cityConfig';
+import { getCityName, getCityConfig } from '@/utils/cityConfig';
 import type { Series } from './SeriesSelector';
 import { API_URL, convertSeriesForAPI, ChiptuningData } from './types';
 import BodyTypeStep from './BodyTypeStep';
@@ -30,6 +31,8 @@ export default function StageSelector({ selectedSeries, selectedCity, onReset, o
   const [euro2Enabled, setEuro2Enabled] = React.useState(false);
   const [dieselOptions, setDieselOptions] = React.useState({ egr: false, dpf: false, flaps: false, adblue: false });
   const [transmissionTuningEnabled, setTransmissionTuningEnabled] = React.useState(false);
+  const [loadError, setLoadError] = React.useState('');
+  const [usingSnapshot, setUsingSnapshot] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
 
   const apiSeries = convertSeriesForAPI(selectedSeries);
@@ -38,12 +41,14 @@ export default function StageSelector({ selectedSeries, selectedCity, onReset, o
   React.useEffect(() => {
     const loadBodyTypes = async () => {
       setLoading(true);
+      setLoadError('');
       try {
-        const response = await fetch(`${API_URL}?action=bodies&series=${encodeURIComponent(apiSeries)}`);
+        const response = await apiFetch(`${API_URL}?action=bodies&series=${encodeURIComponent(apiSeries)}`);
+        setUsingSnapshot(response.headers.get('X-Data-Source') === 'repository-snapshot');
         const data = await response.json();
         setBodyTypes(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Failed to load body types:', error);
+        setLoadError(error instanceof Error ? error.message : 'Не удалось загрузить кузова.');
         setBodyTypes([]);
       } finally {
         setLoading(false);
@@ -57,13 +62,17 @@ export default function StageSelector({ selectedSeries, selectedCity, onReset, o
   const handleBodySelect = async (body: string) => {
     setSelectedBody(body);
     setLoading(true);
+    setLoadError('');
     try {
-      const response = await fetch(`${API_URL}?action=engines&series=${encodeURIComponent(apiSeries)}&body_type=${encodeURIComponent(body)}`);
+      const response = await apiFetch(`${API_URL}?action=engines&series=${encodeURIComponent(apiSeries)}&body_type=${encodeURIComponent(body)}`);
       const data = await response.json();
-      setEngines(Array.isArray(data) ? data : []);
+      setEngines(Array.isArray(data) ? data.map((engine: ChiptuningData) => ({
+        ...engine,
+        stage2: engine.stage2 && Number.isFinite(engine.stage2.price) ? engine.stage2 : null
+      })) : []);
       setStep('engine');
     } catch (error) {
-      console.error('Failed to load engines:', error);
+      setLoadError(error instanceof Error ? error.message : 'Не удалось загрузить двигатели.');
       setEngines([]);
     } finally {
       setLoading(false);
@@ -101,6 +110,7 @@ export default function StageSelector({ selectedSeries, selectedCity, onReset, o
     if (dieselOptions.adblue) messageLines.push('ADBLUE: Да');
 
     messageLines.push('');
+    if (selectedEngine.snapshot) messageLines.push('Расчёт по справочной копии — подтвердите цену и доступность.');
     messageLines.push(`СТОИМОСТЬ: ${finalPrice.toLocaleString('ru-RU')} ₽`);
     messageLines.push(`Город: ${getCityName(selectedCity)}`);
     
@@ -128,6 +138,8 @@ export default function StageSelector({ selectedSeries, selectedCity, onReset, o
 
   return (
     <div className="space-y-2">
+      {loadError && <p role="alert" className="text-amber-200">{loadError}</p>}
+      {usingSnapshot && <p role="status" className="text-white/70 text-sm">Справочная копия каталога. Актуальные цены и доступность подтвердит мастер.</p>}
       <button
         onClick={handleBack}
         className="flex items-center gap-2 px-3 py-1.5 transition-all hover:scale-105"

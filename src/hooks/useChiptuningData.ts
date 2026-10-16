@@ -1,3 +1,4 @@
+import { DATA_API_URL, apiFetch } from '@/lib/api';
 import { useState, useEffect } from 'react';
 
 interface ChiptuningVariant {
@@ -27,11 +28,13 @@ interface ChiptuningData {
   variants: ChiptuningVariant[];
   isLoading: boolean;
   error: string | null;
+  isSnapshot: boolean;
 }
 
-const CHIPTUNING_API = 'https://functions.poehali.dev/1465efc7-1ef5-4210-8079-7bbd027f47a0';
+const CHIPTUNING_API = DATA_API_URL;
 
 export function useChiptuningData(engineName: string): ChiptuningData {
+  const [isSnapshot, setIsSnapshot] = useState(false);
   const [variants, setVariants] = useState<ChiptuningVariant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,9 +43,10 @@ export function useChiptuningData(engineName: string): ChiptuningData {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`${CHIPTUNING_API}?admin=1`);
+        const response = await apiFetch(`${CHIPTUNING_API}?action=variants`);
         if (!response.ok) throw new Error('Failed to fetch chiptuning data');
         
+        setIsSnapshot(response.headers.get('X-Data-Source') === 'repository-snapshot');
         const data: ApiChiptuningItem[] = await response.json();
         
         const filtered = data.filter((item) => 
@@ -78,5 +82,5 @@ export function useChiptuningData(engineName: string): ChiptuningData {
     }
   }, [engineName]);
 
-  return { variants, isLoading, error };
+  return { variants, isLoading, error, isSnapshot };
 }

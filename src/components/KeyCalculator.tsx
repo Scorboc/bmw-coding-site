@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
-import { getTelegramLink, getCityName, getCityConfig } from '@/utils/cityConfig';
+import { getCityName, getCityConfig } from '@/utils/cityConfig';
 import { City } from '@/components/CitySelector';
 
 type SeriesType = 'F' | 'G' | 'U';

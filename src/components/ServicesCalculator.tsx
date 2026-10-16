@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { SERVICES_API_URL, apiFetch } from '@/lib/api';
+import { useState, useEffect, useCallback } from 'react';
 import Icon from '@/components/ui/icon';
 import CarVisualization from './services/CarVisualization';
 import ServicePreviewModal from './services/ServicePreviewModal';
@@ -32,7 +33,7 @@ interface Category {
 }
 
 interface CalculatorProps {
-  vinData: any;
+  vinData: { vin: string; vehicle: { manufacturer: string; series: string; year: string | number } };
   selectedCity: City;
 }
 
@@ -48,10 +49,10 @@ export default function ServicesCalculator({ vinData, selectedCity }: Calculator
   const [hoveredService, setHoveredService] = useState<string | null>(null);
   const [previewService, setPreviewService] = useState<Service | null>(null);
 
-  const loadServices = async () => {
+  const loadServices = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/9fe99b4b-14d3-46f7-821e-c6d3b183abbf', {
+      const response = await apiFetch(SERVICES_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,13 +70,13 @@ export default function ServicesCalculator({ vinData, selectedCity }: Calculator
     } finally {
       setLoading(false);
     }
-  };
+  }, [vinData]);
 
-  const calculateTotal = async () => {
+  const calculateTotal = useCallback(async () => {
     if (selectedServices.size === 0) return;
 
     try {
-      const response = await fetch('https://functions.poehali.dev/9fe99b4b-14d3-46f7-821e-c6d3b183abbf', {
+      const response = await apiFetch(SERVICES_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +96,7 @@ export default function ServicesCalculator({ vinData, selectedCity }: Calculator
     } catch (error) {
       console.error(error);
     }
-  };
+  }, [vinData, selectedServices]);
 
   const toggleService = (serviceCode: string) => {
     vibrate(10);
@@ -112,7 +113,7 @@ export default function ServicesCalculator({ vinData, selectedCity }: Calculator
     if (vinData) {
       loadServices();
     }
-  }, [vinData]);
+  }, [vinData, loadServices]);
 
   useEffect(() => {
     if (selectedServices.size > 0) {
@@ -123,7 +124,7 @@ export default function ServicesCalculator({ vinData, selectedCity }: Calculator
       setDiscount(0);
       setTotalDuration(0);
     }
-  }, [selectedServices]);
+  }, [selectedServices, calculateTotal]);
 
   if (loading) {
     return (

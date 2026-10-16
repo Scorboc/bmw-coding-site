@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import StickyContactButton from '@/components/StickyContactButton';
 import Icon from '@/components/ui/icon';
 import { City } from '@/components/CitySelector';
 import { detectCityByGeolocation } from '@/utils/geolocation';
-import { getCityConfig } from '@/utils/cityConfig';
+
 import { getEngineBySlug, bmwEngines } from '@/data/bmwEngines';
 import { bmwModels } from '@/data/bmwModels';
 import { updateSeoMeta, injectFaqSchema, injectBreadcrumbSchema, injectServiceSchema, cleanupSchemas } from '@/utils/seo';
@@ -13,12 +13,11 @@ import { useChiptuningData } from '@/hooks/useChiptuningData';
 
 export default function BMWEnginePage() {
   const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
   const [selectedCity, setSelectedCity] = useState<City>('saratov');
   const [showCityPulse, setShowCityPulse] = useState(false);
 
   const engine = slug ? getEngineBySlug(slug) : undefined;
-  const { variants, isLoading } = useChiptuningData(engine?.name || '');
+  const { variants, isSnapshot } = useChiptuningData(engine?.name || '');
 
   useEffect(() => {
     if (engine) {
@@ -49,7 +48,6 @@ export default function BMWEnginePage() {
 
   if (!engine) return <Navigate to="/chip-tuning" replace />;
 
-  const config = getCityConfig(selectedCity);
   const relatedEngines = bmwEngines.filter(e => e.slug !== engine.slug).slice(0, 4);
   const relatedModels = bmwModels.filter(m =>
     m.engines.some(me => me.name.toLowerCase().includes(engine.name.toLowerCase()))
@@ -57,6 +55,7 @@ export default function BMWEnginePage() {
 
   return (
     <>
+      {isSnapshot && <p role="status" className="text-white/70 px-4">Справочная копия каталога. Цены и доступность уточняйте у мастера.</p>}
       <StickyContactButton selectedCity={selectedCity} />
       <MainLayout selectedCity={selectedCity} onCityChange={setSelectedCity} showCityPulse={showCityPulse}>
         <div className="max-w-4xl mx-auto">

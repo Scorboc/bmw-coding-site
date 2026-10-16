@@ -142,7 +142,7 @@ export default function CodingPage() {
             <h2 className="text-2xl font-light text-white mb-3">Рассчитать стоимость кодирования</h2>
             <p className="text-white/60 mb-4">Выберите нужные опции и получите итоговую цену</p>
             <Link
-              to="/"
+              to="/#coding"
               className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-white font-medium transition-all hover:scale-105"
               style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', boxShadow: '0 10px 40px rgba(37, 99, 235, 0.4)' }}
             >

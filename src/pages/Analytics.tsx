@@ -1,17 +1,9 @@
+import AdminLogin from '@/components/admin/AdminLogin';
+import { DATA_API_URL, adminFetch, hasAdminSession } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Line, Pie } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(
   CategoryScale,
@@ -24,7 +16,7 @@ ChartJS.register(
   Legend
 );
 
-const API_URL = 'https://functions.poehali.dev/1465efc7-1ef5-4210-8079-7bbd027f47a0';
+const API_URL = DATA_API_URL;
 
 interface AnalyticsData {
   total_visits_30d: number;
@@ -48,27 +40,32 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
+  const [authenticated, setAuthenticated] = useState(hasAdminSession);
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    if (authenticated) fetchAnalytics();
+  }, [authenticated]);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}?action=analytics_overview`);
+      setError(null);
+      const response = await adminFetch(`${API_URL}?action=analytics_overview`);
       if (!response.ok) throw new Error('Failed to fetch analytics');
       const result = await response.json();
       setData(result);
     } catch (err) {
+      if (!hasAdminSession()) setAuthenticated(false);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!authenticated) return <AdminLogin onSuccess={() => setAuthenticated(true)} />;
 
   if (loading) {
     return (

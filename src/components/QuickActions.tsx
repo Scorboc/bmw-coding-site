@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
 import Icon from '@/components/ui/icon';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { City } from '@/components/CitySelector';
 import { getCityConfig, getTelegramLink } from '@/utils/cityConfig';
 
@@ -84,7 +79,7 @@ export default function QuickActions({ selectedCity = 'saratov' }: QuickActionsP
                   }}
                 >
                   <Icon 
-                    name={action.icon as any}
+                    name={action.icon}
                     className="w-6 h-6 md:w-8 md:h-8 text-blue-400"
                   />
                 </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import Icon from '@/components/ui/icon';
 import { City } from '@/components/CitySelector';
 import { getTelegramLink } from '@/utils/cityConfig';
@@ -83,7 +83,7 @@ interface SpecialOfferMobileProps {
 }
 
 export default function SpecialOfferMobile({ selectedCity }: SpecialOfferMobileProps) {
-  const [currentOffer] = useState(0);
+
 
   return (
     <div className="mb-12">
@@ -130,7 +130,7 @@ export default function SpecialOfferMobile({ selectedCity }: SpecialOfferMobileP
               
               <div className="p-5 flex flex-col h-full">
                 <div className="flex items-center gap-2 mb-3">
-                  <Icon name={offer.icon as any} className="w-5 h-5 text-[#E7222E]" />
+                  <Icon name={offer.icon} className="w-5 h-5 text-[#E7222E]" />
                 </div>
                 
                 <h3 className="font-light text-white text-base mb-3 leading-snug h-[3rem] line-clamp-2">
@@ -167,7 +167,7 @@ export default function SpecialOfferMobile({ selectedCity }: SpecialOfferMobileP
                   {offer.features.map((feature, idx) => (
                     <div key={idx} className="flex items-center gap-1.5">
                       <Icon 
-                        name={feature.icon as any} 
+                        name={feature.icon}
                         className="w-3 h-3 text-white/60"
                       />
                       <span className="text-white/60">{feature.text}</span>
@@ -177,7 +177,7 @@ export default function SpecialOfferMobile({ selectedCity }: SpecialOfferMobileP
 
                 {offer.hasButton && (
                   <a 
-                    href={(offer as any).buttonService ? getTelegramLink(selectedCity, (offer as any).buttonService) : (offer as any).buttonLink}
+                    href={getTelegramLink(selectedCity, offer.buttonService)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg font-medium text-white text-sm transition-all duration-300"

@@ -1,5 +1,5 @@
-import React from 'react';
-import Icon from '@/components/ui/icon';
+
+
 import type { ChiptuningData } from './types';
 
 interface EngineStepProps {

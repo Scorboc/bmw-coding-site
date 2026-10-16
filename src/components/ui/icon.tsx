@@ -1,28 +1,7 @@
-import React from 'react';
-import * as LucideIcons from 'lucide-react';
-import { LucideProps } from 'lucide-react';
-
-interface IconProps extends LucideProps {
-  name: string;
-  fallback?: string;
+import { Activity, AlertCircle, AlertTriangle, Armchair, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Award, BarChart3, Battery, BatteryCharging, Bluetooth, Bot, Box, Brain, Calculator, Calendar, Camera, Car, Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronsRight, Circle, CircleAlert, CircleDot, Clock, CloudUpload, Code, Compass, Cpu, CreditCard, Disc, DoorOpen, Download, Droplet, Droplets, ExternalLink, Eye, FileText, FileVideo, Fuel, Gauge, Gift, History, Home, Image, Info, Key, Languages, Layers, Leaf, Lightbulb, LineChart, Lock, Map, MapPin, Maximize2, Menu, MessageCircle, Monitor, Music, Navigation, Package, Palette, Phone, Play, Plus, Power, RefreshCw, Rocket, RotateCcw, Ruler, Search, SearchX, Send, Settings, Settings2, Shield, ShieldCheck, ShoppingCart, Sidebar, Smartphone, Sparkles, Square, Star, Sun, Table, Thermometer, Trash2, TrendingUp, Truck, Tv, Undo2, Upload, Usb, UserCheck, Users, Volume2, VolumeX, Wifi, Wind, Wrench, Zap, type LucideProps, type LucideIcon } from 'lucide-react';
+const icons: Record<string, LucideIcon> = { Activity, AlertCircle, AlertTriangle, Armchair, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Award, BarChart3, Battery, BatteryCharging, Bluetooth, Bot, Box, Brain, Calculator, Calendar, Camera, Car, Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronsRight, Circle, CircleAlert, CircleDot, Clock, CloudUpload, Code, Compass, Cpu, CreditCard, Disc, DoorOpen, Download, Droplet, Droplets, ExternalLink, Eye, FileText, FileVideo, Fuel, Gauge, Gift, History, Home, Image, Info, Key, Languages, Layers, Leaf, Lightbulb, LineChart, Lock, Map, MapPin, Maximize2, Menu, MessageCircle, Monitor, Music, Navigation, Package, Palette, Phone, Play, Plus, Power, RefreshCw, Rocket, RotateCcw, Ruler, Search, SearchX, Send, Settings, Settings2, Shield, ShieldCheck, ShoppingCart, Sidebar, Smartphone, Sparkles, Square, Star, Sun, Table, Thermometer, Trash2, TrendingUp, Truck, Tv, Undo2, Upload, Usb, UserCheck, Users, Volume2, VolumeX, Wifi, Wind, Wrench, Zap };
+interface IconProps extends LucideProps { name: string; fallback?: string; }
+export default function Icon({name, fallback = 'CircleAlert', ...props}: IconProps) {
+ const Component = icons[name] || icons[fallback] || CircleAlert;
+ return <Component {...props} />;
 }
-
-const Icon: React.FC<IconProps> = ({ name, fallback = 'CircleAlert', ...props }) => {
-  const IconComponent = (LucideIcons as Record<string, React.FC<LucideProps>>)[name];
-
-  if (!IconComponent) {
-    // Если иконка не найдена, используем fallback иконку
-    const FallbackIcon = (LucideIcons as Record<string, React.FC<LucideProps>>)[fallback];
-
-    // Если даже fallback не найден, возвращаем пустой span
-    if (!FallbackIcon) {
-      return <span className="text-xs text-gray-400">[icon]</span>;
-    }
-
-    return <FallbackIcon {...props} />;
-  }
-
-  return <IconComponent {...props} />;
-};
-
-export default Icon;

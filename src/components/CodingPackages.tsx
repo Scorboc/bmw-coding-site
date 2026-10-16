@@ -4,7 +4,7 @@ import { Adaptive } from '@/components/ui/responsive';
 import SeriesSelector from './coding/SeriesSelector';
 import OptionsList from './coding/OptionsList';
 import { options, calculatePrice } from './coding/codingData';
-import { getTelegramLink, getCityName, getCityConfig } from '@/utils/cityConfig';
+import { getCityName, getCityConfig } from '@/utils/cityConfig';
 import { City } from '@/components/CitySelector';
 
 interface CodingPackagesProps {

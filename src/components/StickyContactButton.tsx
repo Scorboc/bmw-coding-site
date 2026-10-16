@@ -21,7 +21,7 @@ export default function StickyContactButton({ selectedCity }: StickyContactButto
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsExpanded(false);
       }
@@ -29,12 +29,12 @@ export default function StickyContactButton({ selectedCity }: StickyContactButto
 
     if (isExpanded) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside as any);
+      document.addEventListener('touchstart', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside as any);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isExpanded]);
 
@@ -83,7 +83,7 @@ export default function StickyContactButton({ selectedCity }: StickyContactButto
         )}
         
         <button
-          onClick={handleToggle}
+          aria-label="Открыть контакты" onClick={handleToggle}
           className="min-w-[56px] min-h-[56px] w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 animate-pulse"
           style={{
             boxShadow: '0 8px 32px rgba(59, 130, 246, 0.7)',

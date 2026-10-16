@@ -1,9 +1,10 @@
+import { AI_API_URL } from '@/lib/api';
 import { ChatGPTPlayground } from "@/components/extensions/chatgpt-polza/ChatGPTPlayground";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
-const API_URL = "https://functions.poehali.dev/df31c433-12db-4a99-ab16-3d4ab626565d";
+const API_URL = AI_API_URL;
 
 const BMW_SYSTEM_PROMPT = `Ты — профессиональный консультант BMW сервиса REBORN BMW (Саратов и Москва).
 

@@ -1,4 +1,4 @@
-import {defineConfig} from "vite";
+import {defineConfig, type HotPayload, type ViteDevServer} from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import {componentTagger} from "pp-tagger";
@@ -77,17 +77,18 @@ const hmrClient = `(() => {
 const hmrKeepalive = {
     name: 'hmr-ws-keepalive',
     apply: 'serve' as const,
-    configureServer(server: any) {
+    configureServer(server: ViteDevServer) {
         const boot = Date.now().toString(36);
         let seq = 0;
         const state = () => ({type: 'custom', event: 'ezst:hmr', data: `${boot}:${seq}`});
         const broadcast = server.ws.send.bind(server.ws);
-        server.ws.send = (...args: any[]) => {
+        server.ws.send = (payloadOrEvent: string | HotPayload, payload?: unknown) => {
             seq++;
-            broadcast(...args);
+            if (typeof payloadOrEvent === 'string') broadcast(payloadOrEvent, payload);
+            else broadcast(payloadOrEvent);
             broadcast(state());
         };
-        server.ws.on('connection', (socket: any) => socket.send(JSON.stringify(state())));
+        server.ws.on('connection', (socket) => socket.send(JSON.stringify(state())));
         let timer: ReturnType<typeof setTimeout> | null = null;
         const tick = () => {
             broadcast(state());

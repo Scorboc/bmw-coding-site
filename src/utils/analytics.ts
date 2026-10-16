@@ -5,17 +5,17 @@ declare global {
       counterId: number,
       action: string,
       target: string,
-      params?: Record<string, any>
+      params?: Record<string, unknown>
     ) => void;
   }
 }
 
-const METRIKA_ID = 106455755;
+const METRIKA_ID = 106827578;
 
 /**
  * Отправка цели в Яндекс.Метрику
  */
-export const trackGoal = (goalName: string, params?: Record<string, any>) => {
+export const trackGoal = (goalName: string, params?: Record<string, unknown>) => {
   if (typeof window !== 'undefined' && window.ym) {
     try {
       window.ym(METRIKA_ID, 'reachGoal', goalName, params);
@@ -67,6 +67,7 @@ export const trackChiptuningOrder = (params: {
   stage?: string;
   euro2?: boolean;
   diesel?: string[];
+  transmissionTuning?: boolean;
   city: string;
   price: number;
 }) => {
