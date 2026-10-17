@@ -29,6 +29,10 @@ const queryClient = new QueryClient();
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
   useEffect(() => {
+    if (pathname === '/admin' || pathname === '/analytics') return;
+    fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile: window.innerWidth < 768 }) }).then(response => response.json()).catch(() => {});
+  }, [pathname]);
+  useEffect(() => {
     if (hash) {
       setTimeout(() => {
         const el = document.getElementById(hash.replace('#', ''));

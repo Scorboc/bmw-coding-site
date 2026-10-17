@@ -1,6 +1,6 @@
 const SITE_URL = 'https://reborn-bmw.tech';
 const SITE_NAME = 'Reborn BMW';
-const DEFAULT_OG_IMAGE = 'https://cdn.poehali.dev/projects/892585f1-24a2-432b-810c-dd69d2686659/files/og-image-1768344534832.jpg';
+const DEFAULT_OG_IMAGE = '/media/og-image-1768344534832.jpg';
 
 interface SeoParams {
   title: string;
@@ -79,7 +79,7 @@ export function injectArticleSchema({ title, description, path, datePublished, r
       '@type': 'Organization',
       'name': SITE_NAME,
       'url': SITE_URL,
-      'logo': { '@type': 'ImageObject', 'url': 'https://cdn.poehali.dev/projects/892585f1-24a2-432b-810c-dd69d2686659/files/favicon-1768344534331.jpg' }
+      'logo': { '@type': 'ImageObject', 'url': '/media/favicon-1768344534331.jpg' }
     },
     'mainEntityOfPage': { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
     'timeRequired': `PT${parseInt(readTime)}M`,

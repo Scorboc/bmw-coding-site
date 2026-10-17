@@ -131,6 +131,10 @@ export function useChatGPT({ apiUrl }: UseChatGPTConfig): UseChatGPTReturn {
       });
 
       const data = await response.json();
+      if (data.configured === false) {
+        const message = 'AI ещё не подключён. Настройте модель или ключ на своём сервере.';
+        setError(message); return { success: false, error: message };
+      }
 
       if (!response.ok) {
         setError(data.error || "Failed to fetch models");

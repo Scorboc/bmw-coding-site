@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -12,7 +12,13 @@
     "typecheck": "tsc --noEmit",
     "snapshot": "node scripts/export-snapshot.mjs",
     "prebuild": "npm run snapshot",
-    "predev": "npm run snapshot"
+    "predev": "npm run snapshot",
+    "dev:web": "vite",
+    "start": "node server/index.mjs",
+    "dev:api": "node server/index.mjs",
+    "test:server": "node --test server/*.test.mjs",
+    "backup": "node server/backup.mjs",
+    "setup": "node scripts/setup.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -82,7 +88,6 @@
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
     "postcss": "^8.4.47",
-    "pp-tagger": "^1.0.1",
     "react": "^18.3.1",
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
@@ -91,5 +96,8 @@
   },
   "overrides": {
     "vite": "npm:rolldown-vite@7.1.13"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

@@ -43,8 +43,8 @@ export default function Index() {
 
     // Предзагрузка ключевых изображений
     preloadImages([
-      'https://cdn.poehali.dev/files/rebornlogo.png',
-      'https://cdn.poehali.dev/files/reborn.jpg',
+      '/media/rebornlogo.png',
+      '/media/reborn.jpg',
     ]);
 
     // Очистка устаревшего кэша

@@ -1,28 +1,20 @@
-export const DATA_API_URL = import.meta.env.VITE_DATA_API_URL || 'https://functions.poehali.dev/1465efc7-1ef5-4210-8079-7bbd027f47a0';
-export const AI_API_URL = import.meta.env.VITE_AI_API_URL || 'https://functions.poehali.dev/df31c433-12db-4a99-ab16-3d4ab626565d';
-export const SERVICES_API_URL = import.meta.env.VITE_SERVICES_API_URL || 'https://functions.poehali.dev/9fe99b4b-14d3-46f7-821e-c6d3b183abbf';
-export const ADMIN_API_CONFIGURED = Boolean(import.meta.env.VITE_DATA_API_URL);
+export const DATA_API_URL = import.meta.env.VITE_DATA_API_URL || '/api/data';
+export const AI_API_URL = import.meta.env.VITE_AI_API_URL || '/api/ai';
+export const SERVICES_API_URL = import.meta.env.VITE_SERVICES_API_URL || '/api/services';
+export const ADMIN_API_CONFIGURED = true;
 
 export class ApiError extends Error {
   constructor(message: string, public status?: number) { super(message); }
 }
 
 export async function apiFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const fallback = async () => {
-    if ((init?.method ?? 'GET').toUpperCase() !== 'GET' || !String(input).startsWith(`${DATA_API_URL}?`)) return;
-    try { return await (await import('./snapshot')).snapshotResponse(input); } catch { return; }
-  };
   let response: Response;
   try {
-    response = await fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(15000) });
+    response = await fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(String(input).includes('/api/ai') || String(input).includes('action=ask_ai') ? 130000 : 15000) });
   } catch {
-    const snapshot = await fallback();
-    if (snapshot) return snapshot;
     throw new ApiError('Сервис временно недоступен. Проверьте соединение или попробуйте позже.');
   }
   if (!response.ok) {
-    const snapshot = await fallback();
-    if (snapshot) return snapshot;
     const message = response.status === 402
       ? 'Сервис временно недоступен: исчерпан лимит сервера. Свяжитесь с сервисом для консультации.'
       : response.status === 401 || response.status === 403

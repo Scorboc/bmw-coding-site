@@ -17,5 +17,5 @@ Disallow: /admin
 Disallow: /analytics
 Disallow: /chatgpt
 
-Sitemap: https://functions.poehali.dev/2466944d-ffea-4992-9cbc-677dc0490335
+Sitemap: https://reborn-bmw.tech/sitemap.xml
 Host: https://reborn-bmw.tech

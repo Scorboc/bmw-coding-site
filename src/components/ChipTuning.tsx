@@ -179,7 +179,7 @@ export default function ChipTuning({ selectedCity, isOpen, onClose, audioRef }: 
             
             <div className="flex items-center justify-center px-4">
               <img 
-                src="https://cdn.poehali.dev/files/rebornlogo.png" 
+                src="/media/rebornlogo.png"
                 alt="Reborn Technologies" 
                 className="h-16 md:h-20 w-auto object-contain"
               />

@@ -12,7 +12,7 @@ const offers = [
     oldPrice: '35 000 ₽',
     newPrice: '25 000 ₽',
     discount: '-29%',
-    image: 'https://cdn.poehali.dev/files/mgu1.jpg',
+    image: '/media/mgu1.jpg',
     features: [
       { icon: 'Clock', text: '1 час' },
       { icon: 'Shield', text: 'Гарантия' },
@@ -30,7 +30,7 @@ const offers = [
     oldPrice: '20 000 ₽',
     newPrice: '5 000 ₽',
     discount: '-75%',
-    image: 'https://cdn.poehali.dev/files/KOnOQJrG2OG-A3IbwfD2C7UUxm4-1920.jpg',
+    image: '/media/KOnOQJrG2OG-A3IbwfD2C7UUxm4-1920.jpg',
     features: [
       { icon: 'Clock', text: '30 мин' },
       { icon: 'Shield', text: 'Гарантия' },
@@ -48,7 +48,7 @@ const offers = [
     oldPrice: '',
     newPrice: '',
     discount: '',
-    image: 'https://cdn.poehali.dev/files/MDG1.jpg',
+    image: '/media/MDG1.jpg',
     features: [
       { icon: 'Clock', text: '3-5 дней' },
       { icon: 'Shield', text: 'Гарантия' },
@@ -66,7 +66,7 @@ const offers = [
     oldPrice: '40 000 ₽',
     newPrice: '25 000 ₽',
     discount: '-37%',
-    image: 'https://cdn.poehali.dev/files/key.jpg',
+    image: '/media/key.jpg',
     features: [
       { icon: 'Clock', text: '30 минут' },
       { icon: 'Shield', text: 'Без разбора' },

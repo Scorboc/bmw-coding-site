@@ -3,22 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-function parseCsv(text) {
-  const rows = []; let row = [], value = '', quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if (char === '"') {
-      if (quoted && text[i + 1] === '"') { value += '"'; i++; } else quoted = !quoted;
-    } else if (!quoted && (char === ',' || char === '\n')) {
-      row.push(value.replace(/\r$/, '')); value = '';
-      if (char === '\n') { rows.push(row); row = []; }
-    } else value += char;
-  }
-  if (quoted) throw new Error('Unterminated CSV value');
-  if (value || row.length) { row.push(value.replace(/\r$/, '')); rows.push(row); }
-  const headers = rows.shift();
-  return rows.filter(row => row.length === headers.length).map(row => Object.fromEntries(headers.map((name, i) => [name, row[i]])));
-}
+import { parseCsv } from '../server/csv.mjs';
 const variants = parseCsv(fs.readFileSync(path.join(root, 'data/chiptuning.csv'), 'utf8'))
   .filter(row => row.status === '1').map(row => ({
     model_name: row.model_name, series: row.series, body_type: row.body_type, engine_code: row.engine_code,
@@ -41,7 +26,7 @@ for (const file of ['V0022__create_error_codes_system.sql', 'V0023__add_all_bmw_
   }
 }
 if (!variants.length || !errors.has('P0171')) throw new Error('Snapshot sources could not be parsed');
-const target = path.join(root, 'public/data/catalog-snapshot.json');
+const target = path.join(root, 'data/catalog-seed.json');
 fs.mkdirSync(path.dirname(target), { recursive: true });
 fs.writeFileSync(target, JSON.stringify({ source: 'repository-snapshot', variants, errors: [...errors.values()] }));
 console.log(`Snapshot: ${variants.length} published variants, ${errors.size} error codes. Stage 2 prices absent in CSV; omitted.`);
