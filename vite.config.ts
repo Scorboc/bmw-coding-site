@@ -1,7 +1,6 @@
-import {defineConfig} from "vite";
+import {defineConfig, type HotPayload, type ViteDevServer} from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import {componentTagger} from "pp-tagger";
 
 // https://vitejs.dev/config/
 // HMR-сокет превью рвёт инфраструктура: ingress-nginx на каждом reload
@@ -77,17 +76,18 @@ const hmrClient = `(() => {
 const hmrKeepalive = {
     name: 'hmr-ws-keepalive',
     apply: 'serve' as const,
-    configureServer(server: any) {
+    configureServer(server: ViteDevServer) {
         const boot = Date.now().toString(36);
         let seq = 0;
         const state = () => ({type: 'custom', event: 'ezst:hmr', data: `${boot}:${seq}`});
         const broadcast = server.ws.send.bind(server.ws);
-        server.ws.send = (...args: any[]) => {
+        server.ws.send = (payloadOrEvent: string | HotPayload, payload?: unknown) => {
             seq++;
-            broadcast(...args);
+            if (typeof payloadOrEvent === 'string') broadcast(payloadOrEvent, payload);
+            else broadcast(payloadOrEvent);
             broadcast(state());
         };
-        server.ws.on('connection', (socket: any) => socket.send(JSON.stringify(state())));
+        server.ws.on('connection', (socket) => socket.send(JSON.stringify(state())));
         let timer: ReturnType<typeof setTimeout> | null = null;
         const tick = () => {
             broadcast(state());
@@ -101,12 +101,10 @@ const hmrKeepalive = {
     transformIndexHtml: () => [{tag: 'script', children: hmrClient, injectTo: 'head-prepend' as const}],
 };
 
-export default defineConfig(({mode}) => ({
+export default defineConfig(() => ({
     plugins: [
         hmrKeepalive,
         react(),
-        mode === 'development' &&
-        componentTagger(),
     ].filter(Boolean),
     resolve: {
         alias: {
@@ -116,7 +114,8 @@ export default defineConfig(({mode}) => ({
     server: {
         host: '0.0.0.0',
         port: 5173,
-        allowedHosts: true,
+        proxy: { '/api': 'http://127.0.0.1:5190' },
+        allowedHosts: ['localhost', '127.0.0.1'],
         hmr: {
             timeout: 7000,
             overlay: false // Disables the error overlay if you only want console errors

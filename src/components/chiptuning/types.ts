@@ -1,6 +1,8 @@
+import { DATA_API_URL } from '@/lib/api';
 import type { Series } from './SeriesSelector';
 
 export interface ChiptuningData {
+  snapshot?: boolean;
   model_name: string;
   series: string;
   body_type: string;
@@ -15,13 +17,14 @@ export interface ChiptuningData {
     price: number;
   };
   stage2?: {
+    price: number;
     power: number;
     torque: number;
   } | null;
   stage_type: string;
 }
 
-export const API_URL = 'https://functions.poehali.dev/1465efc7-1ef5-4210-8079-7bbd027f47a0';
+export const API_URL = DATA_API_URL;
 
 export function convertSeriesForAPI(series: Series): string {
   const mapping: Record<string, string> = {

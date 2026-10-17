@@ -5,7 +5,7 @@ import StickyContactButton from '@/components/StickyContactButton';
 import Icon from '@/components/ui/icon';
 import { City } from '@/components/CitySelector';
 import { detectCityByGeolocation } from '@/utils/geolocation';
-import { getCityConfig } from '@/utils/cityConfig';
+
 import { bmwModels } from '@/data/bmwModels';
 import { bmwEngines } from '@/data/bmwEngines';
 import { updateSeoMeta, injectServiceSchema, injectBreadcrumbSchema, cleanupSchemas } from '@/utils/seo';
@@ -40,7 +40,6 @@ export default function ChipTuningPage() {
     return () => { cleanupSchemas(); };
   }, []);
 
-  const config = getCityConfig(selectedCity);
 
   return (
     <>

@@ -1,9 +1,10 @@
+import { DATA_API_URL, apiFetch } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import ErrorCodeSearch from '@/components/ErrorCodeSearch';
 
-const API_URL = 'https://functions.poehali.dev/1465efc7-1ef5-4210-8079-7bbd027f47a0';
+const API_URL = DATA_API_URL;
 
 interface ErrorCode {
   id: number;
@@ -17,6 +18,8 @@ interface ErrorCode {
 
 export default function ErrorCodes() {
   const navigate = useNavigate();
+  const [usingSnapshot, setUsingSnapshot] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [popularCodes, setPopularCodes] = useState<ErrorCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'obd2' | 'bmw_specific'>('all');
@@ -53,12 +56,14 @@ export default function ErrorCodes() {
   }, []);
 
   const loadPopularCodes = async () => {
+    setLoading(true); setLoadError('');
     try {
-      const response = await fetch(`${API_URL}?action=get_popular_errors`);
+      const response = await apiFetch(`${API_URL}?action=get_popular_errors`);
+      setUsingSnapshot(response.headers.get('X-Data-Source') === 'repository-snapshot');
       const data = await response.json();
       setPopularCodes(data);
     } catch (error) {
-      console.error('Failed to load error codes:', error);
+      setLoadError(error instanceof Error ? error.message : 'Не удалось загрузить список ошибок.');
     } finally {
       setLoading(false);
     }
@@ -160,11 +165,13 @@ export default function ErrorCodes() {
           </div>
         </div>
 
+        {loadError && <div role="alert" className="text-amber-200 mb-6"><p>{loadError}</p><button className="underline mt-2" onClick={loadPopularCodes}>Повторить загрузку</button></div>}
+        {usingSnapshot && <p role="status" className="text-white/70 mb-6">Сервер недоступен. Показана справочная копия кодов из каталога сайта; статистика популярности недоступна.</p>}
         {/* Popular error codes */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
             <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 md:mb-0">
-              Популярные ошибки
+              {usingSnapshot ? 'Справочник ошибок' : 'Популярные ошибки'}
             </h2>
             <div className="flex gap-2">
               <button

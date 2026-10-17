@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api';
 /**
  * ChatGPT Extension - Text Generation Hook
  *
@@ -88,7 +89,7 @@ export function useChatGPT({ apiUrl }: UseChatGPTConfig): UseChatGPTReturn {
       setError(null);
 
       try {
-        const response = await fetch(`${apiUrl}?action=generate`, {
+        const response = await apiFetch(`${apiUrl}?action=generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(params),
@@ -124,12 +125,16 @@ export function useChatGPT({ apiUrl }: UseChatGPTConfig): UseChatGPTReturn {
     setError(null);
 
     try {
-      const response = await fetch(`${apiUrl}?action=models`, {
+      const response = await apiFetch(`${apiUrl}?action=models`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
 
       const data = await response.json();
+      if (data.configured === false) {
+        const message = 'AI ещё не подключён. Настройте модель или ключ на своём сервере.';
+        setError(message); return { success: false, error: message };
+      }
 
       if (!response.ok) {
         setError(data.error || "Failed to fetch models");
@@ -152,7 +157,7 @@ export function useChatGPT({ apiUrl }: UseChatGPTConfig): UseChatGPTReturn {
       setError(null);
 
       try {
-        const response = await fetch(`${apiUrl}?action=test`, {
+        const response = await apiFetch(`${apiUrl}?action=test`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(model ? { model } : {}),

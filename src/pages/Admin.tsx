@@ -1,3 +1,6 @@
+import { parseCsv, encodeCsv } from '@/lib/csv';
+import AdminLogin from '@/components/admin/AdminLogin';
+import { DATA_API_URL, adminFetch, hasAdminSession } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
@@ -5,12 +8,10 @@ import AddCarForm, { type ChiptuningRecord } from '@/components/admin/AddCarForm
 import AdminFilters from '@/components/admin/AdminFilters';
 import AdminTable from '@/components/admin/AdminTable';
 
-const API_URL = 'https://functions.poehali.dev/1465efc7-1ef5-4210-8079-7bbd027f47a0';
+const API_URL = DATA_API_URL;
 
 export default function Admin() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [passwordInput, setPasswordInput] = useState('');
-  const [passwordError, setPasswordError] = useState(false);
+  const [authenticated, setAuthenticated] = useState(hasAdminSession);
   const [records, setRecords] = useState<ChiptuningRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -21,12 +22,6 @@ export default function Admin() {
   const [filterBodyType, setFilterBodyType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  useEffect(() => {
-    const saved = sessionStorage.getItem('admin_auth');
-    if (saved === 'true') {
-      setAuthenticated(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (authenticated) loadData();
@@ -34,10 +29,11 @@ export default function Admin() {
 
   const loadData = async () => {
     try {
-      const response = await fetch(`${API_URL}?admin=1`);
+      const response = await adminFetch(`${API_URL}?admin=1`);
       const data = await response.json();
       setRecords(data);
     } catch (error) {
+      if (!hasAdminSession()) setAuthenticated(false);
       console.error('Ошибка загрузки:', error);
       alert('Ошибка загрузки данных');
     } finally {
@@ -61,7 +57,7 @@ export default function Admin() {
 
   const saveRecord = async (updatedRecord: ChiptuningRecord) => {
     try {
-      const response = await fetch(API_URL, {
+      const response = await adminFetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,6 +86,7 @@ export default function Admin() {
         })
       });
 
+      await response.json();
       if (response.ok) {
         setRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
         return true;
@@ -103,7 +100,7 @@ export default function Admin() {
 
   const addNewRecord = async (newData: Omit<ChiptuningRecord, 'id'>) => {
     try {
-      const response = await fetch(API_URL, {
+      const response = await adminFetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,6 +128,7 @@ export default function Admin() {
         })
       });
 
+      await response.json();
       if (response.ok) {
         alert('✅ Автомобиль успешно добавлен!');
         loadData();
@@ -147,15 +145,18 @@ export default function Admin() {
   const handleSync = async () => {
     setSyncing(true);
     try {
-      const response = await fetch(API_URL, {
+      const response = await adminFetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'sync_csv' })
       });
       
       const result = await response.json();
-      if (result.message?.includes('Successfully')) {
-        alert('✅ Данные успешно синхронизированы с GitHub!');
+      if (result.success && typeof result.csv === 'string') {
+        const url = URL.createObjectURL(new Blob([result.csv], { type: 'text/csv;charset=utf-8;' }));
+        const link = document.createElement('a'); link.href = url; link.download = result.filename || 'chiptuning.csv'; link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        alert('✅ CSV создан из вашей базы.');
       } else {
         alert(`⚠️ ${result.message || 'Ошибка синхронизации'}`);
       }
@@ -168,14 +169,14 @@ export default function Admin() {
   };
 
   const handleExport = () => {
-    const headers = ['Модель', 'Серия', 'Кузов', 'Двигатель', 'Артикул', 'Сток л.с.', 'Сток Нм', 'Stage1 л.с.', 'Stage1 Нм', 'Цена Stage1', 'Stage2 л.с.', 'Stage2 Нм', 'Цена Stage2', 'Тип', 'Рестайлинг', 'Статус', 'Показ Stage2'];
+    const headers = ['Модель', 'Серия', 'Кузов', 'Двигатель', 'Артикул', 'Сток л.с.', 'Сток Нм', 'Stage1 л.с.', 'Stage1 Нм', 'Цена Stage1', 'Stage2 л.с.', 'Stage2 Нм', 'Цена Stage2', 'Тип', 'Рестайлинг', 'Статус', 'Показ Stage2', 'Прошивка'];
     const rows = records.map(r => [
       r.model_name, r.series, r.body_type, r.engine_code, r.article_code,
       r.stock.power, r.stock.torque, r.stage1.power, r.stage1.torque, r.stage1.price,
-      r.stage2?.power ?? '', r.stage2?.torque ?? '', r.stage2?.price ?? '', r.stage_type, r.is_restyling ? '1' : '0', r.status, r.show_stage2 ? '1' : '0'
+      r.stage2?.power ?? '', r.stage2?.torque ?? '', r.stage2?.price ?? '', r.stage_type, r.is_restyling ? '1' : '0', r.status, r.show_stage2 ? '1' : '0', r.firmware_type
     ]);
     
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const csv = encodeCsv([headers, ...rows]);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -188,56 +189,32 @@ export default function Admin() {
     const reader = new FileReader();
     reader.onload = async (e) => {
       const text = e.target?.result as string;
-      const lines = text.split('\n').slice(1);
-      
-      for (const line of lines) {
-        const parts = line.split(',');
-        if (parts.length < 16) continue;
+      try {
+        const rows = parseCsv(text).slice(1).filter(row => row.some(value => value.trim()));
+        if (rows.some(row => row.length < 17)) throw new Error('В CSV отсутствуют обязательные столбцы.');
+        const records = rows.map(parts => ({
+          model_name: parts[0], series: parts[1], body_type: parts[2], engine_code: parts[3], article_code: parts[4],
+          stock_power: Number(parts[5]), stock_torque: Number(parts[6]), stage1_power: Number(parts[7]), stage1_torque: Number(parts[8]), stage1_price: Number(parts[9]),
+          stage2_power: parts[10] ? Number(parts[10]) : null, stage2_torque: parts[11] ? Number(parts[11]) : null,
+          stage2_price: parts[12] ? Number(parts[12]) : null, stage_type: parts[13], is_restyling: parts[14] === '1', status: parts[15], show_stage2: parts[16] === '1', firmware_type: parts[17] || '30I'
+        }));
+        const response = await adminFetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'import', records }) });
+        await response.json();
+        await loadData();
+        alert('Импорт завершён');
+      } catch (reason) { alert(reason instanceof Error ? reason.message : 'Импорт не выполнен.'); }
 
-        try {
-          await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'add',
-              data: {
-                model_name: parts[0],
-                series: parts[1],
-                body_type: parts[2],
-                engine_code: parts[3],
-                article_code: parts[4],
-                stock_power: parseFloat(parts[5]),
-                stock_torque: parseFloat(parts[6]),
-                stage1_power: parseFloat(parts[7]),
-                stage1_torque: parseFloat(parts[8]),
-                stage1_price: parseFloat(parts[9]),
-                stage2_power: parts[10] ? parseFloat(parts[10]) : null,
-                stage2_torque: parts[11] ? parseFloat(parts[11]) : null,
-                stage2_price: parts[12] ? parseFloat(parts[12]) : null,
-                stage_type: parts[13],
-                is_restyling: parts[14] === '1',
-                status: parts[15],
-                show_stage2: parts[16] === '1'
-              }
-            })
-          });
-        } catch (error) {
-          console.error('Ошибка импорта строки:', error);
-        }
-      }
-      
-      loadData();
-      alert('Импорт завершён');
     };
     reader.readAsText(file);
   };
 
   const handleDelete = async (id: number) => {
-    await fetch(API_URL, {
+    const response = await adminFetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'delete', id })
     });
+    await response.json();
     loadData();
   };
 
@@ -248,38 +225,7 @@ export default function Admin() {
     setFilterStatus('all');
   };
 
-  const handleLogin = () => {
-    if (passwordInput === 'bmw2025') {
-      setAuthenticated(true);
-      sessionStorage.setItem('admin_auth', 'true');
-      setPasswordError(false);
-    } else {
-      setPasswordError(true);
-    }
-  };
-
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center">
-        <div className="bg-white/5 border border-white/10 rounded-lg p-8 w-full max-w-sm">
-          <h2 className="text-white text-xl font-bold mb-6 text-center">Вход в админ-панель</h2>
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={passwordInput}
-            onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(false); }}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-            className={`w-full px-4 py-3 rounded-lg bg-white/10 border text-white placeholder-white/40 mb-4 outline-none focus:ring-2 focus:ring-blue-500 ${passwordError ? 'border-red-500' : 'border-white/20'}`}
-            autoFocus
-          />
-          {passwordError && <p className="text-red-400 text-sm mb-4">Неверный пароль</p>}
-          <Button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700">
-            Войти
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  if (!authenticated) return <AdminLogin onSuccess={() => setAuthenticated(true)} />;
 
   if (loading) {
     return (
@@ -315,7 +261,7 @@ export default function Admin() {
               disabled={syncing}
             >
               <Icon name={syncing ? 'RefreshCw' : 'CloudUpload'} className={`w-5 h-5 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Синхронизация...' : 'Синхронизировать с GitHub'}
+              {syncing ? 'Подготовка CSV...' : 'Скачать CSV из базы'}
             </Button>
             <Button onClick={handleExport} variant="outline" className="bg-white/5 border-white/20 text-white hover:bg-white/10">
               <Icon name="Download" className="w-5 h-5 mr-2" />

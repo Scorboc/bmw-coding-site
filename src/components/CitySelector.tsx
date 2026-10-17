@@ -17,7 +17,7 @@ export default function CitySelector({ onCityChange, selectedCity }: CitySelecto
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
@@ -25,12 +25,12 @@ export default function CitySelector({ onCityChange, selectedCity }: CitySelecto
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside as any);
+      document.addEventListener('touchstart', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside as any);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isOpen]);
 
@@ -47,7 +47,7 @@ export default function CitySelector({ onCityChange, selectedCity }: CitySelecto
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/10 border-2 border-blue-400/40 text-white hover:border-blue-400/60 transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] min-h-[44px]"
       >
-        <Icon name={currentCity?.icon as any} className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-400" />
+        <Icon name={currentCity?.icon ?? 'MapPin'} className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-400" />
         <span className="text-xs md:text-sm font-medium">{currentCity?.name}</span>
         <Icon name="ChevronDown" className={`w-3.5 h-3.5 md:w-4 md:h-4 text-blue-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -62,7 +62,7 @@ export default function CitySelector({ onCityChange, selectedCity }: CitySelecto
                 selectedCity === city.id ? 'bg-white/5' : ''
               }`}
             >
-              <Icon name={city.icon as any} className="w-4 h-4 text-white" />
+              <Icon name={city.icon} className="w-4 h-4 text-white" />
               <span className="text-sm font-light text-white">{city.name}</span>
               {selectedCity === city.id && (
                 <Icon name="Check" className="w-4 h-4 text-blue-400 ml-auto" />

@@ -44,7 +44,7 @@ export default function MusicPlayer({ isOpen, audioRef }: MusicPlayerProps) {
       audio.removeEventListener('ended', handleTrackEnd);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [currentTrackIndex, isMuted]);
+  }, [currentTrackIndex, isMuted, audioRef]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -59,7 +59,7 @@ export default function MusicPlayer({ isOpen, audioRef }: MusicPlayerProps) {
       audio.currentTime = 0;
       setIsMuted(false);
     }
-  }, [isOpen]);
+  }, [isOpen, audioRef]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -71,7 +71,7 @@ export default function MusicPlayer({ isOpen, audioRef }: MusicPlayerProps) {
         audio.play().catch(err => console.log('Play error:', err));
       }
     }
-  }, [currentTrackIndex, isMuted]);
+  }, [currentTrackIndex, isMuted, audioRef]);
 
   const toggleMute = () => {
     const audio = audioRef.current;

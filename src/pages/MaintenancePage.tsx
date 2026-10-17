@@ -5,7 +5,7 @@ import StickyContactButton from '@/components/StickyContactButton';
 import Icon from '@/components/ui/icon';
 import { City } from '@/components/CitySelector';
 import { detectCityByGeolocation } from '@/utils/geolocation';
-import { getCityConfig, getCityName } from '@/utils/cityConfig';
+
 import { updateSeoMeta, injectServiceSchema, injectBreadcrumbSchema, cleanupSchemas } from '@/utils/seo';
 
 const services = [
@@ -88,7 +88,6 @@ export default function MaintenancePage() {
     return () => { cleanupSchemas(); };
   }, []);
 
-  const config = getCityConfig(selectedCity);
 
   return (
     <>

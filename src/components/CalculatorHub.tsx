@@ -2,7 +2,7 @@ import { useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { City } from '@/components/CitySelector';
-import ChipTuning from './ChipTuning';
+const ChipTuning = lazy(() => import('./ChipTuning'));
 
 const KeyCalculator = lazy(() => import('./KeyCalculator'));
 const CodingPackages = lazy(() => import('./CodingPackages'));
@@ -26,41 +26,22 @@ export default function CalculatorHub({ selectedCity }: CalculatorHubProps) {
   const [activeCalculator, setActiveCalculator] = useState<CalculatorType>(null);
   const [isChipTuningOpen, setIsChipTuningOpen] = useState(false);
   const chipTuningAudioRef = useRef<HTMLAudioElement | null>(null);
-  const hashHandled = useRef(false);
 
   useEffect(() => {
-    console.log('CalculatorHub hash:', location.hash);
-    const shouldOpenChiptuning = (location.hash === '#chiptuning' || location.hash === '#calculator-hub') && !hashHandled.current;
-    const shouldOpenKeys = location.hash === '#keys' && !hashHandled.current;
-    
-    if (shouldOpenChiptuning) {
-      console.log('Opening chiptuning calculator');
-      hashHandled.current = true;
-      setTimeout(() => {
-        setIsChipTuningOpen(true);
-        if (!chipTuningAudioRef.current) {
-          chipTuningAudioRef.current = new Audio('/music/track3.mp3');
-          chipTuningAudioRef.current.volume = 0.12;
-          chipTuningAudioRef.current.loop = true;
-        }
-        chipTuningAudioRef.current.play().catch(() => {});
-      }, 300);
-    }
-    
-    if (shouldOpenKeys) {
-      console.log('Opening keys calculator');
-      hashHandled.current = true;
-      setTimeout(() => {
-        setActiveCalculator('key');
-        const element = document.getElementById('services');
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 300);
-    }
-    
-    if (location.hash !== '#chiptuning' && location.hash !== '#calculator-hub' && location.hash !== '#keys') {
-      hashHandled.current = false;
+    const calculator = location.hash === '#keys' ? 'key' : location.hash === '#coding' ? 'coding' : null;
+    if (calculator) {
+      setActiveCalculator(calculator);
+      setIsChipTuningOpen(false);
+      document.getElementById('services')?.scrollIntoView({ block: 'start' });
+    } else if (['#chiptuning', '#calculator-hub'].includes(location.hash)) {
+      setActiveCalculator(null);
+      if (!chipTuningAudioRef.current) {
+        chipTuningAudioRef.current = new Audio('/music/track3.mp3');
+        chipTuningAudioRef.current.volume = 0.12;
+        chipTuningAudioRef.current.loop = true;
+      }
+      chipTuningAudioRef.current.play().catch(() => {});
+      setIsChipTuningOpen(true);
     }
   }, [location.hash]);
 
@@ -145,7 +126,7 @@ export default function CalculatorHub({ selectedCity }: CalculatorHubProps) {
           {calculators.map((calc) => (
             <button
               key={calc.id}
-              id={calc.id}
+              id={calc.id ?? undefined}
               onClick={() => {
                 if (calc.id === 'chiptuning') {
                   handleChipTuningOpen();
@@ -255,12 +236,12 @@ export default function CalculatorHub({ selectedCity }: CalculatorHubProps) {
       </div>
     </div>
     
-    <ChipTuning 
+    {isChipTuningOpen && <Suspense fallback={<LoadingSpinner />}><ChipTuning
       selectedCity={selectedCity}
       isOpen={isChipTuningOpen}
       onClose={() => setIsChipTuningOpen(false)}
       audioRef={chipTuningAudioRef}
-    />
+    /></Suspense>}
     </>
   );
 }

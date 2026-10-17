@@ -2,6 +2,7 @@
 API для получения данных о чип-тюнинге BMW из базы данных + Prerendering для SEO ботов
 """
 import json
+import hmac
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -21,8 +22,8 @@ def get_cors_headers(origin=None):
     }
 
 def handler(event: dict, context) -> dict:
-    method = event.get('httpMethod', 'GET')
-    headers = event.get('headers', {})
+    method = event.get('httpMethod', 'GET').upper()
+    headers = {str(key).lower(): value for key, value in (event.get('headers') or {}).items()}
     origin = headers.get('origin') or headers.get('Origin')
     
     # === PRERENDERING ДЛЯ SEO БОТОВ ===
@@ -33,7 +34,7 @@ def handler(event: dict, context) -> dict:
     
     # Если бот запрашивает корень (без action параметра) — отдаём HTML
     params = event.get('queryStringParameters') or {}
-    if is_bot and not params.get('action'):
+    if is_bot and method == 'GET' and not params.get('action') and not params.get('admin'):
         return {
             'statusCode': 200,
             'headers': {
@@ -58,6 +59,36 @@ def handler(event: dict, context) -> dict:
     params = event.get('queryStringParameters') or {}
     action = params.get('action', '')
     
+    # Enforce access before any database or GitHub operation. Only ask_ai is a public POST.
+    body = {}
+    if method == 'POST':
+        try:
+            raw_body = event.get('body') or '{}'
+            if event.get('isBase64Encoded'):
+                raw_body = base64.b64decode(raw_body, validate=True).decode('utf-8')
+            body = json.loads(raw_body)
+            if not isinstance(body, dict):
+                raise ValueError('Expected object')
+        except (ValueError, TypeError, UnicodeError):
+            return {'statusCode': 400, 'headers': get_cors_headers(origin),
+                    'body': json.dumps({'error': 'Invalid JSON body'}), 'isBase64Encoded': False}
+
+    protected = (params.get('admin') == '1'
+                 or action in ('analytics_overview', 'analytics_errors')
+                 or (method == 'POST' and action != 'ask_ai'))
+    # An administrative body cannot be disguised with ?action=ask_ai.
+    protected = protected or body.get('action') in ('update', 'add', 'delete', 'sync_csv')
+    if protected:
+        expected = os.environ.get('ADMIN_API_TOKEN', '')
+        if len(expected) < 32:
+            return {'statusCode': 503, 'headers': get_cors_headers(origin),
+                    'body': json.dumps({'error': 'Admin access is not configured'}), 'isBase64Encoded': False}
+        authorization = str(headers.get('authorization') or '').split()
+        supplied = authorization[1] if len(authorization) == 2 and authorization[0].lower() == 'bearer' else ''
+        if not hmac.compare_digest(supplied.encode('utf-8'), expected.encode('utf-8')):
+            return {'statusCode': 401, 'headers': get_cors_headers(origin),
+                    'body': json.dumps({'error': 'Authentication required'}), 'isBase64Encoded': False}
+
     try:
         # Подключение к БД
         conn = psycopg2.connect(os.environ['DATABASE_URL'])
@@ -235,7 +266,6 @@ def handler(event: dict, context) -> dict:
                 }
         
         elif action == 'ask_ai' and method == 'POST':
-            body = json.loads(event.get('body', '{}'))
             question = body.get('question', '').lower()
             code = body.get('code', '')
             
@@ -260,7 +290,7 @@ def handler(event: dict, context) -> dict:
         
         # === CHIPTUNING DATA ===
         # Админка - GET запрос с admin=1
-        if method == 'GET' and params.get('admin') == '1':
+        if method == 'GET' and (params.get('admin') == '1' or action == 'variants'):
             query = """
                 SELECT 
                     id,
@@ -285,9 +315,11 @@ def handler(event: dict, context) -> dict:
                 FROM t_p937713_bmw_coding_site.bmw_chiptuning
                 ORDER BY id
             """
+            if action == 'variants' and params.get('admin') != '1':
+                query = query.replace('ORDER BY id', "WHERE status = '1' ORDER BY id")
             cursor.execute(query)
             records = cursor.fetchall()
-            
+
             result = []
             for r in records:
                 result.append({
@@ -330,7 +362,6 @@ def handler(event: dict, context) -> dict:
         
         # POST запросы для админки
         if method == 'POST':
-            body = json.loads(event.get('body', '{}'))
             action = body.get('action')
             
             if action == 'update':
@@ -485,8 +516,8 @@ def handler(event: dict, context) -> dict:
                     }
                 
                 # GitHub API
-                repo_owner = '8w7pszxshz-ops'
-                repo_name = 'bmw-coding-site'
+                repo_owner = os.environ.get('GITHUB_REPO_OWNER', 'Scorboc')
+                repo_name = os.environ.get('GITHUB_REPO_NAME', 'bmw-coding-site')
                 file_path = 'data/chiptuning.csv'
                 
                 # Получаем SHA файла (если существует)
@@ -574,6 +605,7 @@ def handler(event: dict, context) -> dict:
                     stage1_price,
                     stage2_power,
                     stage2_torque,
+                    stage2_price,
                     stage_type,
                     show_stage2
                 FROM t_p937713_bmw_coding_site.bmw_chiptuning
@@ -601,8 +633,9 @@ def handler(event: dict, context) -> dict:
                     },
                     'stage2': {
                         'power': record['stage2_power'],
-                        'torque': record['stage2_torque']
-                    } if record['stage2_power'] and record['stage2_torque'] and record['show_stage2'] else None,
+                        'torque': record['stage2_torque'],
+                        'price': record['stage2_price']
+                    } if record['stage2_power'] and record['stage2_torque'] and record['show_stage2'] and record['stage2_price'] is not None else None,
                     'stage_type': record['stage_type']
                 })
         else:

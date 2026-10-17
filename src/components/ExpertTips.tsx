@@ -78,7 +78,7 @@ function ExpertTipsMobile() {
               border: '1px solid rgba(255, 215, 0, 0.3)'
             }}
           >
-            <Icon name={tip.icon as any} className="w-4 h-4 text-[#FFD700]" />
+            <Icon name={tip.icon} className="w-4 h-4 text-[#FFD700]" />
           </div>
           <h3 className="font-light text-white text-sm leading-tight">{tip.title}</h3>
         </div>
@@ -223,7 +223,7 @@ function ExpertTipsDesktop() {
                   border: '1px solid rgba(255, 215, 0, 0.3)'
                 }}
               >
-                <Icon name={tip.icon as any} className="w-7 h-7 text-[#FFD700]" />
+                <Icon name={tip.icon} className="w-7 h-7 text-[#FFD700]" />
               </div>
               <h3 className="font-light text-white text-xl">{tip.title}</h3>
             </div>
@@ -267,7 +267,7 @@ function ExpertTipsDesktop() {
         </div>
 
         <button
-          onClick={handlePrev}
+          aria-label="Предыдущий слайд" onClick={handlePrev}
           className="absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-30"
           style={{
             background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.15))',
@@ -279,7 +279,7 @@ function ExpertTipsDesktop() {
         </button>
 
         <button
-          onClick={handleNext}
+          aria-label="Следующий слайд" onClick={handleNext}
           className="absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-30"
           style={{
             background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.15))',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { City } from '@/components/CitySelector';
-import { getTelegramLink } from '@/utils/cityConfig';
+
 import { trackChiptuningOrder, trackGoal, goals } from '@/utils/analytics';
 import type { Series } from './SeriesSelector';
 import type { ChiptuningData } from './types';
@@ -19,7 +19,7 @@ interface StageStepProps {
   dieselOptions: { egr: boolean; dpf: boolean; flaps: boolean; adblue: boolean };
   transmissionTuningEnabled: boolean;
   selectedBody: string | null;
-  onSelectStage: (stage: 'stage1' | 'stage2') => void;
+  onSelectStage: (stage: 'stage1' | 'stage2' | null) => void;
   onEuro2Change: (enabled: boolean) => void;
   onDieselOptionChange: (option: 'egr' | 'dpf' | 'flaps' | 'adblue', enabled: boolean) => void;
   onTransmissionTuningChange: (enabled: boolean) => void;
@@ -56,8 +56,8 @@ export default function StageStep({
   const dateOptionPrice = dateOption === '2023' ? 95000 : dateOption === '2020' ? 50000 : 0;
   const startStopPrice = startStopOff ? 15000 : 0;
 
-  const calculatePrice = (basePrice: number, stageId: string) => {
-    let price = selectedCity.value === 'moscow' ? basePrice : Math.round(basePrice * 0.9);
+  const calculatePrice = (basePrice: number, _stageId: string) => {
+    let price = selectedCity === 'moscow' ? basePrice : Math.round(basePrice * 0.9);
     
     if (selectedStage && euro2Enabled) {
       price += 5000;
@@ -208,7 +208,7 @@ export default function StageStep({
                 torque={stage.data.torque}
                 onClick={() => {
                   if (isSelected) {
-                    onSelectStage(null as unknown as 'stage1' | 'stage2');
+                    onSelectStage(null);
                   } else {
                     onSelectStage(stage.id as 'stage1' | 'stage2');
                     trackGoal(goals.chiptuningStageSelected, {
@@ -251,10 +251,10 @@ export default function StageStep({
               engine: selectedEngine.engine_code,
               stage: selectedStage || 'none',
               euro2: euro2Enabled,
-              dieselOptions: isDiesel ? dieselOptions : undefined,
+              diesel: isDiesel ? Object.entries(dieselOptions).filter(([, enabled]) => enabled).map(([name]) => name) : undefined,
               transmissionTuning: transmissionTuningEnabled,
               city: selectedCity,
-              finalPrice
+              price: finalPrice
             });
 
             onOrder(finalPrice, { dateOption, startStopOff });

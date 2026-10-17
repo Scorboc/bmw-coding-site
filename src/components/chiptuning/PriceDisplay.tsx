@@ -1,4 +1,4 @@
-import React from 'react';
+
 import Icon from '@/components/ui/icon';
 
 interface PriceDisplayProps {

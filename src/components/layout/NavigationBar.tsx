@@ -60,6 +60,8 @@ function NavigationBarMobile({ selectedCity, onCityChange, showCityPulse }: Navi
       <div className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-gradient-to-b from-black/90 via-black/80 to-transparent border-b border-blue-500/10">
         <div className="px-4 py-3 flex items-center justify-between">
           <button
+            aria-label={isMenuOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={isMenuOpen}
             onClick={() => {
               vibrate(15);
               setIsMenuOpen(!isMenuOpen);

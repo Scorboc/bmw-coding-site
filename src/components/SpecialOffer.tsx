@@ -5,7 +5,8 @@ import { Adaptive } from '@/components/ui/responsive';
 import { City } from '@/components/CitySelector';
 import { getTelegramLink } from '@/utils/cityConfig';
 
-const offers = [
+interface Offer { label: string; imageStyle?: import('react').CSSProperties; id: number; icon: string; title: string; description: string; oldPrice: string; newPrice: string; discount: string; image: string; features: {icon: string; text: string; highlight?: boolean}[]; hasButton: boolean; buttonText: string; buttonService?: string; buttonLink?: string; }
+const offers: Offer[] = [
   {
     id: 1,
     icon: 'Map',
@@ -15,7 +16,7 @@ const offers = [
     oldPrice: '35 000 ₽',
     newPrice: '25 000 ₽',
     discount: '-29%',
-    image: 'https://cdn.poehali.dev/files/mgu1.jpg',
+    image: '/media/mgu1.jpg',
     imageStyle: {
       filter: 'brightness(1.35) contrast(1.5) saturate(1.4)',
       objectPosition: 'center 35%',
@@ -39,7 +40,7 @@ const offers = [
     oldPrice: '20 000 ₽',
     newPrice: '5 000 ₽',
     discount: '-75%',
-    image: 'https://cdn.poehali.dev/files/KOnOQJrG2OG-A3IbwfD2C7UUxm4-1920.jpg',
+    image: '/media/KOnOQJrG2OG-A3IbwfD2C7UUxm4-1920.jpg',
     imageStyle: {
       filter: 'brightness(1.2) contrast(1.3) saturate(1.1)',
       objectPosition: 'center center',
@@ -62,7 +63,7 @@ const offers = [
     oldPrice: '',
     newPrice: '',
     discount: '',
-    image: 'https://cdn.poehali.dev/files/MDG1.jpg',
+    image: '/media/MDG1.jpg',
     imageStyle: {
       filter: 'brightness(1) contrast(1.1) saturate(1)',
       objectPosition: 'center center',
@@ -86,7 +87,7 @@ const offers = [
     oldPrice: '40 000 ₽',
     newPrice: '25 000 ₽',
     discount: '-37%',
-    image: 'https://cdn.poehali.dev/files/key.jpg',
+    image: '/media/key.jpg',
     imageStyle: {
       filter: 'brightness(1.1) contrast(1.2) saturate(1.05)',
       objectPosition: 'center center',
@@ -257,7 +258,7 @@ function SpecialOfferDesktop({ selectedCity }: SpecialOfferDesktopProps) {
             
             <div className="relative z-10 flex flex-col h-full">
               <div className="flex items-center gap-3 mb-6 h-8">
-                <Icon name={offer.icon as any} className="w-6 h-6 text-[#E7222E]" />
+                <Icon name={offer.icon} className="w-6 h-6 text-[#E7222E]" />
                 <span className="text-[#E7222E] text-sm font-light tracking-widest uppercase">{offer.label}</span>
               </div>
               
@@ -307,7 +308,7 @@ function SpecialOfferDesktop({ selectedCity }: SpecialOfferDesktopProps) {
                       } : {}}
                     >
                       <Icon 
-                        name={feature.icon as any} 
+                        name={feature.icon}
                         className="w-4 h-4"
                         style={{ color: feature.highlight ? '#E7222E' : 'rgba(255, 255, 255, 0.6)' }}
                       />
@@ -323,7 +324,7 @@ function SpecialOfferDesktop({ selectedCity }: SpecialOfferDesktopProps) {
 
                 {offer.hasButton && (
                   <a 
-                    href={getTelegramLink(selectedCity, (offer as any).buttonService)}
+                    href={getTelegramLink(selectedCity, ('buttonService' in offer ? offer.buttonService : undefined))}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-3 px-8 py-4 rounded-xl font-medium text-white transition-all duration-300 hover:scale-105"
@@ -343,7 +344,7 @@ function SpecialOfferDesktop({ selectedCity }: SpecialOfferDesktopProps) {
         </div>
 
         <button
-          onClick={handlePrev}
+          aria-label="Предыдущий слайд" onClick={handlePrev}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
             background: 'linear-gradient(135deg, rgba(231, 34, 46, 0.9), rgba(231, 34, 46, 0.7))',
@@ -355,7 +356,7 @@ function SpecialOfferDesktop({ selectedCity }: SpecialOfferDesktopProps) {
         </button>
 
         <button
-          onClick={handleNext}
+          aria-label="Следующий слайд" onClick={handleNext}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
             background: 'linear-gradient(135deg, rgba(231, 34, 46, 0.9), rgba(231, 34, 46, 0.7))',
@@ -378,6 +379,7 @@ function SpecialOfferDesktop({ selectedCity }: SpecialOfferDesktopProps) {
             {offers.map((_, idx) => (
               <button
                 key={idx}
+                aria-label={`Слайд ${idx + 1}`}
                 onClick={() => handleDotClick(idx)}
                 className="transition-all duration-300"
                 style={{

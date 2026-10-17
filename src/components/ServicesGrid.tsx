@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { Adaptive } from '@/components/ui/responsive';
 
 import { City } from '@/components/CitySelector';
-import { getTelegramLink, getCityName, getCityConfig } from '@/utils/cityConfig';
+import { getCityName, getCityConfig } from '@/utils/cityConfig';
 
 const services = [
   {
@@ -74,7 +74,9 @@ const services = [
   }
 ];
 
-function ServiceCardMobile({ service, index, isSelected, onToggle, selectedCity }: any) {
+interface ServiceCardProps { service: typeof services[number]; index: number; isSelected: boolean; onToggle: () => void; selectedCity: City; }
+
+function ServiceCardMobile({ service, index, isSelected, onToggle, selectedCity }: ServiceCardProps) {
   return (
     <Card
       className="group relative overflow-hidden border-0 transition-all duration-500 flex-shrink-0"
@@ -225,7 +227,7 @@ function ServiceCardMobile({ service, index, isSelected, onToggle, selectedCity 
   );
 }
 
-function ServiceCardDesktop({ service, index, isSelected, onToggle, selectedCity }: any) {
+function ServiceCardDesktop({ service, index, isSelected, onToggle, selectedCity }: ServiceCardProps) {
   return (
     <Card
       className="group relative overflow-hidden border-0 transition-all duration-500 hover:scale-[1.02]"

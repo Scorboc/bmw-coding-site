@@ -1,3 +1,4 @@
+import { DATA_API_URL, apiFetch } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { City } from '@/components/CitySelector';
 import { getTelegramLink } from '@/utils/cityConfig';
 
-const API_URL = 'https://functions.poehali.dev/1465efc7-1ef5-4210-8079-7bbd027f47a0';
+const API_URL = DATA_API_URL;
 
 interface ErrorCode {
   id: number;
@@ -30,6 +31,8 @@ export default function ErrorCodeDetail() {
   const navigate = useNavigate();
   const [errorData, setErrorData] = useState<ErrorCode | null>(null);
   const [loading, setLoading] = useState(true);
+  const [usingSnapshot, setUsingSnapshot] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiResponse, setAiResponse] = useState<AIResponse>({ answer: '', loading: false });
@@ -109,8 +112,11 @@ export default function ErrorCodeDetail() {
   const loadErrorCode = async (errorCode: string) => {
     setLoading(true);
     setNotFound(false);
+    setLoadError('');
+    setErrorData(null);
     try {
-      const response = await fetch(`${API_URL}?action=get_error&code=${errorCode.toUpperCase()}`);
+      const response = await apiFetch(`${API_URL}?action=get_error&code=${errorCode.toUpperCase()}`);
+      setUsingSnapshot(response.headers.get('X-Data-Source') === 'repository-snapshot');
       const data = await response.json();
       
       if (data.found) {
@@ -120,7 +126,7 @@ export default function ErrorCodeDetail() {
       }
     } catch (error) {
       console.error('Failed to load error code:', error);
-      setNotFound(true);
+      setLoadError(error instanceof Error ? error.message : 'Не удалось загрузить код ошибки.');
     } finally {
       setLoading(false);
     }
@@ -132,7 +138,7 @@ export default function ErrorCodeDetail() {
     setAiResponse({ answer: '', loading: true });
 
     try {
-      const response = await fetch(`${API_URL}?action=ask_ai`, {
+      const response = await apiFetch(`${API_URL}?action=ask_ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -186,14 +192,20 @@ export default function ErrorCodeDetail() {
     );
   }
 
+  if (loadError) return <main className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center gap-4 px-4">
+    <h1>Не удалось загрузить код ошибки</h1><p role="alert">{loadError}</p>
+    <Button onClick={() => code && loadErrorCode(code)}>Повторить</Button>
+    <Link to="/error-codes">Вернуться к поиску</Link>
+  </main>;
+
   if (notFound) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 flex items-center justify-center px-4">
         <div className="text-center">
           <Icon name="SearchX" className="w-16 h-16 text-white/40 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-4">Код ошибки не найден</h1>
+          <h1 className="text-3xl font-bold text-white mb-4">{usingSnapshot ? 'Код отсутствует в справочной копии' : 'Код ошибки не найден'}</h1>
           <p className="text-white/60 mb-8">
-            Код <span className="font-mono font-bold">{code}</span> не найден в нашей базе данных.
+            Код <span className="font-mono font-bold">{code}</span> {usingSnapshot ? 'не найден в справочной копии. Онлайн-база сейчас недоступна.' : 'не найден в нашей базе данных.'}
           </p>
           <Button onClick={() => navigate('/error-codes')}>
             <Icon name="ArrowLeft" className="w-5 h-5 mr-2" />
@@ -224,6 +236,7 @@ export default function ErrorCodeDetail() {
           <span>Все коды ошибок</span>
         </Link>
 
+        {usingSnapshot && <p role="status" className="text-white/70 mb-6">Справочная копия каталога. Онлайн-база сейчас недоступна. Точную причину ошибки определяет диагностика.</p>}
         {/* Error code header */}
         <div
           className="p-6 md:p-8 rounded-xl mb-6"

@@ -3,31 +3,35 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import Index from "./pages/Index";
-import ChatGPT from "./pages/ChatGPT";
-import Admin from "./pages/Admin";
-import Analytics from "./pages/Analytics";
-import ErrorCodes from "./pages/ErrorCodes";
-import ErrorCodeDetail from "./pages/ErrorCodeDetail";
-import ChipTuningPage from "./pages/ChipTuningPage";
-import CodingPage from "./pages/CodingPage";
-import KeysPage from "./pages/KeysPage";
-import EcologyPage from "./pages/EcologyPage";
-import BMWModelPage from "./pages/BMWModelPage";
-import BMWEnginePage from "./pages/BMWEnginePage";
-import PricesPage from "./pages/PricesPage";
-import AboutPage from "./pages/AboutPage";
-import MaintenancePage from "./pages/MaintenancePage";
-import BlogPage from "./pages/BlogPage";
-import BlogArticlePage from "./pages/BlogArticlePage";
-import NotFound from "./pages/NotFound";
+const ChatGPT = lazy(() => import("./pages/ChatGPT"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const ErrorCodes = lazy(() => import("./pages/ErrorCodes"));
+const ErrorCodeDetail = lazy(() => import("./pages/ErrorCodeDetail"));
+const ChipTuningPage = lazy(() => import("./pages/ChipTuningPage"));
+const CodingPage = lazy(() => import("./pages/CodingPage"));
+const KeysPage = lazy(() => import("./pages/KeysPage"));
+const EcologyPage = lazy(() => import("./pages/EcologyPage"));
+const BMWModelPage = lazy(() => import("./pages/BMWModelPage"));
+const BMWEnginePage = lazy(() => import("./pages/BMWEnginePage"));
+const PricesPage = lazy(() => import("./pages/PricesPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 const queryClient = new QueryClient();
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
+  useEffect(() => {
+    if (pathname === '/admin' || pathname === '/analytics') return;
+    fetch('/api/visit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mobile: window.innerWidth < 768 }) }).then(response => response.json()).catch(() => {});
+  }, [pathname]);
   useEffect(() => {
     if (hash) {
       setTimeout(() => {
@@ -52,6 +56,7 @@ const App = () => {
         <ScrollToTopButton />
         <BrowserRouter>
           <ScrollToTop />
+          <Suspense fallback={<div role="status" className="min-h-screen bg-black text-white flex items-center justify-center">Загрузка страницы…</div>}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/chatgpt" element={<ChatGPT />} />
@@ -73,6 +78,7 @@ const App = () => {
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

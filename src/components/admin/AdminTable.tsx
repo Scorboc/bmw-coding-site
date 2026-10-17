@@ -14,7 +14,7 @@ export default function AdminTable({ records, onSave, onDelete }: AdminTableProp
   const [editValue, setEditValue] = useState('');
   const [savedCells, setSavedCells] = useState<Set<string>>(new Set());
 
-  const handleCellClick = (id: number, field: string, currentValue: any) => {
+  const handleCellClick = (id: number, field: string, currentValue: unknown) => {
     setEditingCell({ id, field });
     setEditValue(String(currentValue ?? ''));
   };
@@ -30,18 +30,18 @@ export default function AdminTable({ records, onSave, onDelete }: AdminTableProp
     
     if (fieldPath.length === 2) {
       const [parent, child] = fieldPath;
-      if (parent === 'stock' || parent === 'stage1' || parent === 'stage2') {
-        if (!updatedRecord[parent as keyof ChiptuningRecord]) {
-          (updatedRecord[parent as keyof ChiptuningRecord] as any) = { power: 0, torque: 0 };
-        }
-        (updatedRecord[parent as keyof ChiptuningRecord] as any) = {
-          ...(updatedRecord[parent as keyof ChiptuningRecord] as any),
-          [child]: parseFloat(editValue) || 0
-        };
+      if ((parent === 'stock' || parent === 'stage1' || parent === 'stage2') && ['power', 'torque', 'price'].includes(child)) {
+        const value = Number(editValue);
+        if (!Number.isFinite(value) || value < 0) return;
+        if (parent === 'stage1') updatedRecord.stage1 = { ...record.stage1, [child]: value };
+        else if (parent === 'stock') updatedRecord.stock = { ...record.stock, [child]: value };
+        else updatedRecord.stage2 = { power: 0, torque: 0, ...record.stage2, [child]: value };
       }
     } else {
-      const field = editingCell.field as keyof ChiptuningRecord;
-      (updatedRecord[field] as any) = editValue;
+      const fields = ['model_name', 'series', 'body_type', 'engine_code', 'article_code', 'stage_type', 'status', 'firmware_type'] as const;
+      const field = fields.find(name => name === editingCell.field);
+      if (!field) return;
+      updatedRecord[field] = editValue;
     }
 
     const success = await onSave(updatedRecord);
@@ -61,7 +61,7 @@ export default function AdminTable({ records, onSave, onDelete }: AdminTableProp
     setEditingCell(null);
   };
 
-  const renderCell = (record: ChiptuningRecord, field: string, value: any) => {
+  const renderCell = (record: ChiptuningRecord, field: string, value: string | number | null | undefined) => {
     const cellKey = `${record.id}-${field}`;
     const isEditing = editingCell?.id === record.id && editingCell?.field === field;
     const isSaved = savedCells.has(cellKey);
