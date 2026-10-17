@@ -1,7 +1,6 @@
 import {defineConfig, type HotPayload, type ViteDevServer} from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import {componentTagger} from "pp-tagger";
 
 // https://vitejs.dev/config/
 // HMR-сокет превью рвёт инфраструктура: ingress-nginx на каждом reload
@@ -102,12 +101,10 @@ const hmrKeepalive = {
     transformIndexHtml: () => [{tag: 'script', children: hmrClient, injectTo: 'head-prepend' as const}],
 };
 
-export default defineConfig(({mode}) => ({
+export default defineConfig(() => ({
     plugins: [
         hmrKeepalive,
         react(),
-        mode === 'development' &&
-        componentTagger(),
     ].filter(Boolean),
     resolve: {
         alias: {
@@ -117,7 +114,8 @@ export default defineConfig(({mode}) => ({
     server: {
         host: '0.0.0.0',
         port: 5173,
-        allowedHosts: true,
+        proxy: { '/api': 'http://127.0.0.1:5190' },
+        allowedHosts: ['localhost', '127.0.0.1'],
         hmr: {
             timeout: 7000,
             overlay: false // Disables the error overlay if you only want console errors
